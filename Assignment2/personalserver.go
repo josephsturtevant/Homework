@@ -42,7 +42,23 @@ func timeHandler(w http.ResponseWriter, r *http.Request) {
 
 //Handles calls to pretty much everywhere other than /time
 func homeHandler(w http.ResponseWriter, r *http.Request){
-	errorHandler(w,r, http.StatusNotFound)
+	//http.Redirect(w, r, "./login", 302)
+	if r.URL.Path != "/" && r.URL.Path != "/index.html" && r.URL.Path != "/index.htm" {
+		errorHandler(w, r, http.StatusNotFound)
+		return
+	}
+	fmt.Fprintf(w, "<html><body><head><title>Login</title></head>")
+	fmt.Fprintf(w, "<body><form action='login'>What is your name, Earthling?<input type='text' name='name' size='50'>")
+	fmt.Fprintf(w, "<input type='submit'></form><p/></body></html>")
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request){
+	if r.URL.Path != "/logout/" {
+		errorHandler(w, r, http.StatusNotFound)
+		return
+	}
+	fmt.Fprintf(w, "<html><body><head><title>Logout</title><META http-equiv='refresh' content='10;URL=/''></head>")
+	fmt.Fprintf(w, "<body><p>Good-bye.</p></body></html>")
 }
 
 //Error handler
@@ -60,6 +76,7 @@ func errorHandler(w http.ResponseWriter, r *http.Request, status int){
 func runServer(){
 	http.HandleFunc("/time/", timeHandler)
 	http.HandleFunc("/", homeHandler)
+	http.HandleFunc("/logout/", logoutHandler)
     if err := http.ListenAndServe(fmt.Sprintf(":%d", *portFlag), nil); err != nil{
     	fmt.Printf("Port %v already in use", *portFlag)
     }
