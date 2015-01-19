@@ -18,6 +18,8 @@ import (
     "net/http"
     "time"
     "flag"
+    "bytes"
+    "os/exec"
 )
 
 //Flag variables for port and version, as well as the current version
@@ -61,6 +63,11 @@ func logoutHandler(w http.ResponseWriter, r *http.Request){
 	fmt.Fprintf(w, "<body><p>Good-bye.</p></body></html>")
 }
 
+func loginHandler(w http.ResponseWriter, r *http.Request){
+	name := r.FormValue("name")
+	fmt.Printf("The name given was: %s", name)
+}
+
 //Error handler
 //Prints a custom page on StatusNotFound error (404)
 func errorHandler(w http.ResponseWriter, r *http.Request, status int){
@@ -77,6 +84,7 @@ func runServer(){
 	http.HandleFunc("/time/", timeHandler)
 	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/logout/", logoutHandler)
+	http.HandleFunc("/login", loginHandler)
     if err := http.ListenAndServe(fmt.Sprintf(":%d", *portFlag), nil); err != nil{
     	fmt.Printf("Port %v already in use", *portFlag)
     }
@@ -84,6 +92,11 @@ func runServer(){
 
 func main() {
 	flag.Parse()
+	cmd := exec.Command("uuidgen")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	fmt.Printf("The output is: %v%v",cmd.Stdout, err)
 	if *versionFlag {
 		fmt.Printf("Version: %v\n", version)
 	} else {
