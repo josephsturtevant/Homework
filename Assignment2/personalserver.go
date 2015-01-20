@@ -28,7 +28,7 @@ import (
 var (
 	portFlag = flag.Int("port", 8080, "Defines the port number to listen on")
 	versionFlag = flag.Bool("V", false, "Returns the version")
-	version = "2.04"
+	version = "2.05"
 	users = map[string]string{}
 	mutex = &sync.Mutex{}
 )
@@ -76,6 +76,11 @@ func homeHandler(w http.ResponseWriter, r *http.Request){
 	}	
 }
 
+//This handles the logout
+//First, it makes sure the URL is correct
+//Next, it checks the cookie. If there's an error (such as no cookie) it does nothing.
+//Otherwise, it sets the expiration date to time.Now()
+//Lastly, it sets the refresh for 10 seconds and redirect to home
 func logoutHandler(w http.ResponseWriter, r *http.Request){
 	fmt.Printf("LOGOUT HANDLER\n")
 	if r.URL.Path != "/logout/" {
