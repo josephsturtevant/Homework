@@ -46,9 +46,16 @@ func timeHandler(w http.ResponseWriter, r *http.Request) {
 //Handles calls to pretty much everywhere other than /time
 func homeHandler(w http.ResponseWriter, r *http.Request){
 	//http.Redirect(w, r, "./login", 302)
+	fmt.Printf("HOME HANDLER\n")
 	if r.URL.Path != "/" && r.URL.Path != "/index.html" && r.URL.Path != "/index.htm" {
 		errorHandler(w, r, http.StatusNotFound)
 		return
+	}
+	uid, err := r.Cookie("userid")
+	if err != nil {
+		fmt.Printf("err is: %s\n", err)
+	} else {
+		fmt.Printf("Current uid is :%s\n", uid)
 	}
 	fmt.Fprintf(w, "<html><body><head><title>Login</title></head>")
 	fmt.Fprintf(w, "<body><form action='login'>What is your name, Earthling?<input type='text' name='name' size='50'>")
@@ -65,6 +72,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request){
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request){
+	fmt.Printf("LOGIN HANDLER\n")
 	name := r.FormValue("name")
 	fmt.Printf("The name given was: %s\n", name)
 	cmd := exec.Command("uuidgen")
@@ -72,7 +80,11 @@ func loginHandler(w http.ResponseWriter, r *http.Request){
 	cmd.Stdout = &out
 	cmd.Run()
 	users[out.String()] = name
-	fmt.Printf("%s and %s", out.String(), users[out.String()])
+	fmt.Printf("%s and %s\n", out.String(), users[out.String()])
+	//expire := time.Now().AddDate(0, 0, 1)
+	c := http.Cookie{Name: "userid", Value: "testing", Path: "/"}
+	http.SetCookie(w, &c)
+	http.Redirect(w, r, "./..", 302)
 }
 
 //Error handler
@@ -83,6 +95,12 @@ func errorHandler(w http.ResponseWriter, r *http.Request, status int){
 		fmt.Fprintf(w, "<html><head><title>You Dun Goofed</title></head>")
 		fmt.Fprintf(w, "<body><p>These are not the URLs you're looking for.</p></body></html>")
 	}
+}
+
+func parseCookies(c *http.Cookie) {
+	fmt.Printf("PARSE COOKIES")
+	uname := c.String()
+	fmt.Printf("The cookie was: %s\n", uname)
 }
 
 //Starts the server. 
