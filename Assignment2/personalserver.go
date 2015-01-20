@@ -27,6 +27,7 @@ var (
 	portFlag = flag.Int("port", 8080, "Defines the port number to listen on")
 	versionFlag = flag.Bool("V", false, "Returns the version")
 	version = "1.0"
+	users = map[string]string{}
 )
 
 //Handles calls to /time/
@@ -65,7 +66,13 @@ func logoutHandler(w http.ResponseWriter, r *http.Request){
 
 func loginHandler(w http.ResponseWriter, r *http.Request){
 	name := r.FormValue("name")
-	fmt.Printf("The name given was: %s", name)
+	fmt.Printf("The name given was: %s\n", name)
+	cmd := exec.Command("uuidgen")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Run()
+	users[out.String()] = name
+	fmt.Printf("%s and %s", out.String(), users[out.String()])
 }
 
 //Error handler
@@ -96,7 +103,8 @@ func main() {
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
-	fmt.Printf("The output is: %v%v",cmd.Stdout, err)
+	fmt.Printf("The output is: %T%v\n",cmd.Stdout, err)
+	fmt.Printf("%s", out.String())
 	if *versionFlag {
 		fmt.Printf("Version: %v\n", version)
 	} else {
