@@ -1,15 +1,15 @@
 /*Copyright Joseph Sturtevant 1/11/15
 Joseph Sturtevant
 CSS 490 Tactical Programming
-Assignment 1
+Assignment 2
 
-This is a simple time server
+This is a personal time server utilizing cookies
 
 Code modified from the wiki:
 https://golang.org/doc/articles/wiki/
 
-Advice on custom 404 from StackOverFlow user Mostafa
-http://stackoverflow.com/questions/9996767/showing-custom-404-error-page-with-standard-http-package
+Mutex help from:
+https://gobyexample.com/mutexes
 */
 package main
 
@@ -21,6 +21,7 @@ import (
     "bytes"
     "os/exec"
     "strings"
+    "sync"
 )
 
 //Flag variables for port and version, as well as the current version
@@ -29,6 +30,7 @@ var (
 	versionFlag = flag.Bool("V", false, "Returns the version")
 	version = "2.04"
 	users = map[string]string{}
+	mutex = &sync.Mutex{}
 )
 
 //Handles calls to /time/
@@ -99,7 +101,9 @@ func loginHandler(w http.ResponseWriter, r *http.Request){
 	cmd.Run()
 	//This lines gets rid of the /n in out.String()
 	s := strings.TrimSuffix(out.String(), "\n")
+	mutex.Lock()
 	users[s] = name
+	mutex.Unlock()
 	fmt.Printf("User Name %s was stored in users[%s]\n", users[s], s)
 	c := http.Cookie{Name: "userid", Value: out.String(), Path: "/"}
 	http.SetCookie(w, &c)
