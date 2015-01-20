@@ -27,7 +27,7 @@ import (
 var (
 	portFlag = flag.Int("port", 8080, "Defines the port number to listen on")
 	versionFlag = flag.Bool("V", false, "Returns the version")
-	version = "1.0"
+	version = "2.3"
 	users = map[string]string{}
 )
 
@@ -59,6 +59,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request){
 		fmt.Fprintf(w, "<input type='submit'></form><p/></body></html>")
 	} else {
 		s := strings.TrimPrefix(uid.String(), "userid=")
+		fmt.Printf("%s\n", s)
 		fmt.Fprintf(w, "<html><body><head><title>Logged In</title></head>")
 		fmt.Fprintf(w, "<body>Greetings, %s</body></html>", users[s])
 	}	
@@ -87,8 +88,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request){
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Run()
-	users[out.String()] = name
-	fmt.Printf("User Name %s was stored in users[%s]\n", users[out.String()], out.String())
+	//This lines gets rid of the /n in out.String()
+	s := strings.TrimSuffix(out.String(), "\n")
+	users[s] = name
+	fmt.Printf("User Name %s was stored in users[%s]\n", users[s], s)
 	c := http.Cookie{Name: "userid", Value: out.String(), Path: "/"}
 	http.SetCookie(w, &c)
 	http.Redirect(w, r, "./..", 302)
@@ -107,6 +110,7 @@ func errorHandler(w http.ResponseWriter, r *http.Request, status int){
 //Starts the server. 
 //Doesn't run if the -V flag is set
 func runServer(){
+	fmt.Printf("SERVER STARTED\n")
 	http.HandleFunc("/time/", timeHandler)
 	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/logout/", logoutHandler)
@@ -117,13 +121,8 @@ func runServer(){
 }
 
 func main() {
+	fmt.Printf("PROGRAM STARTED\n")
 	flag.Parse()
-	cmd := exec.Command("uuidgen")
-	var out bytes.Buffer
-	cmd.Stdout = &out
-	err := cmd.Run()
-	fmt.Printf("The output is: %T%v\n",cmd.Stdout, err)
-	fmt.Printf("%s", out.String())
 	if *versionFlag {
 		fmt.Printf("Version: %v\n", version)
 	} else {
