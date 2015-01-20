@@ -27,21 +27,30 @@ import (
 var (
 	portFlag = flag.Int("port", 8080, "Defines the port number to listen on")
 	versionFlag = flag.Bool("V", false, "Returns the version")
-	version = "2.3"
+	version = "2.04"
 	users = map[string]string{}
 )
 
 //Handles calls to /time/
 //Formats the time to HH:MM:SS AM/PM
 func timeHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("TIME HANDLER\n")
 	if r.URL.Path != "/time/" {
 		errorHandler(w, r, http.StatusNotFound)
 		return
 	}
 	t := time.Now()
 	curTime := t.Format("3:04:05 PM")
-    fmt.Fprintf(w, "<html><head><title>The Time</title></head>")
-    fmt.Fprintf(w, "<body><p>The time is : <span style='color:red;font-size:2em'>%s</span></p></body></html>", curTime)
+	uid, err := r.Cookie("userid")
+	if goodCookie := validateCookie(uid); err == nil && goodCookie{
+		s := strings.TrimPrefix(uid.String(), "userid=")
+		fmt.Fprintf(w, "<html><head><title>The Time</title></head>")
+    	fmt.Fprintf(w, "<body><p>The time is : <span style='color:red;font-size:2em'>%s</span>, %s</p></body></html>", curTime, users[s])
+	} else {
+		fmt.Fprintf(w, "<html><head><title>The Time</title></head>")
+    	fmt.Fprintf(w, "<body><p>The time is : <span style='color:red;font-size:2em'>%s</span></p></body></html>", curTime)
+	}
+    
 }
 
 //Handles calls to pretty much everywhere other than /time
@@ -53,15 +62,15 @@ func homeHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 	uid, err := r.Cookie("userid")
-	if err != nil {
+	if goodCookie := validateCookie(uid); err == nil && goodCookie{
+		s := strings.TrimPrefix(uid.String(), "userid=")
+		fmt.Fprintf(w, "<html><body><head><title>Logged In</title></head>")
+		fmt.Fprintf(w, "<body>Greetings, %s</body></html>", users[s])
+	} else {
 		fmt.Fprintf(w, "<html><body><head><title>Login</title></head>")
 		fmt.Fprintf(w, "<body><form action='login'>What is your name, Earthling?<input type='text' name='name' size='50'>")
 		fmt.Fprintf(w, "<input type='submit'></form><p/></body></html>")
-	} else {
-		s := strings.TrimPrefix(uid.String(), "userid=")
-		fmt.Printf("%s\n", s)
-		fmt.Fprintf(w, "<html><body><head><title>Logged In</title></head>")
-		fmt.Fprintf(w, "<body>Greetings, %s</body></html>", users[s])
+		
 	}	
 }
 
@@ -104,6 +113,20 @@ func errorHandler(w http.ResponseWriter, r *http.Request, status int){
 	if status == http.StatusNotFound {
 		fmt.Fprintf(w, "<html><head><title>You Dun Goofed</title></head>")
 		fmt.Fprintf(w, "<body><p>These are not the URLs you're looking for.</p></body></html>")
+	}
+}
+
+//Checks to see if there's data at the userid given by the cookie. Returns false if there's not.
+func validateCookie(c *http.Cookie) bool {
+	fmt.Printf("Validate Cookie\n")
+	if c == nil {
+		return false
+	}
+	s := strings.TrimPrefix(c.String(), "userid=")
+	if users[s] != "" {
+		return true
+	} else {
+		return false
 	}
 }
 
