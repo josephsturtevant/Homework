@@ -36,8 +36,9 @@ func timeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	t := time.Now()
 	curTime := t.Format("3:04:05 PM")
+	UTCTime := t.Format("15:04:05 UTC")
     fmt.Fprintf(w, "<html><head><title>The Time</title></head>")
-    fmt.Fprintf(w, "<body><p>The time is : <span style='color:red;font-size:2em'>%s</span></p></body></html>", curTime)
+    fmt.Fprintf(w, "<body><p>The time is : <span style='color:red;font-size:2em'>%s</span>%s</p></body></html>", curTime, UTCTime)
 }
 
 //Handles calls to pretty much everywhere other than /time
